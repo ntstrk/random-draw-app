@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Synced Random Draw</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Responsive styles -->
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    padding: 20px;
+  }
+
+  h1 {
+    font-size: clamp(24px, 5vw, 36px);
+  }
+
+  button {
+    font-size: clamp(18px, 4vw, 24px);
+    padding: 15px 30px;
+    background: #1976d2;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin: 10px;
+  }
+
+  button:disabled {
+    background: #aaa;
+    cursor: not-allowed;
+  }
+
+  /* Responsive square */
+  #resultBox {
+    width: min(60vw, 300px);
+    height: min(60vw, 300px);
+    margin: 30px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    font-size: clamp(48px, 12vw, 96px);
+    font-weight: bold;
+    color: white;
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.4);
+    visibility: hidden;
+  }
+
+  #remaining {
+    margin-top: 20px;
+    font-size: clamp(14px, 3vw, 20px);
+    color: #555;
+  }
+</style>
+</head>
+<body>
+
+<h1>Random Number–Color Draw</h1>
+
+<button id="drawBtn">Draw</button>
+<button id="saveBtn" style="display:none;">Save Screenshot</button>
+
+<div id="resultBox"></div>
+<div id="remaining"></div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
+
+<!-- html2canvas for screenshot saving -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+<script>
+// ---------------------------------------------------------------------
+// 1. REPLACE WITH YOUR FIREBASE CONFIG
+// ---------------------------------------------------------------------
+const firebaseConfig = {
+  apiKey: "AIzaSyACXi5d8eOeC1fxy9ZUWFyxXmQVO4xDa-Q",
+  authDomain: "spmsrandomdraw2025.firebaseapp.com",
+  projectId: "spmsrandomdraw2025",
+  storageBucket: "spmsrandomdraw2025.firebasestorage.app",
+  messagingSenderId: "681042601152",
+  appId: "1:681042601152:web:0e4b10c1f0d66c24863925"
+};
+
+// Initialize Firebase
+const app = firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const docRef = db.collection("combos").doc("master");
+
+// Full list of combos (ONLY used for initialization)
+const fullList = [
+  "1-Red","1-Blue","1-Green","1-Yellow","1-Purple",
+  "2-Red","2-Blue","2-Green","2-Yellow","2-Purple",
+  "3-Red","3-Blue","3-Green","3-Yellow","3-Purple",
+  "4-Red","4-Blue","4-Green","4-Yellow","4-Purple",
+  "5-Red","5-Blue","5-Green","5-Yellow","5-Purple"
+];
+
+let currentList = [];
+
+// Color mapping
+const colorMap = {
+  "Red": "#e53935",
+  "Blue": "#1e88e5",
+  "Green": "#43a047",
+  "Yellow": "#fdd835",
+  "Purple": "#8e24aa"
+};
+
+// ---------------------------------------------------------------------
+// 2. DRAWING DISPLAY LOGIC
+// ---------------------------------------------------------------------
+function showResult(combo) {
+  const box = document.getElementById("resultBox");
+  const saveBtn = document.getElementById("saveBtn");
+
+  const [num, color] = combo.split("-");
+
+  box.style.background = colorMap[color];
+  box.textContent = num;
+  box.style.visibility = "visible";
+  saveBtn.style.display = "inline-block";
+}
+
+function updateRemaining() {
+  document.getElementById("remaining").textContent =
+    currentList.length + " combinations remain.";
+
+  document.getElementById("drawBtn").disabled = (currentList.length === 0);
+}
+
+// ---------------------------------------------------------------------
+// 3. REAL-TIME LISTENER
+// ---------------------------------------------------------------------
+docRef.onSnapshot((doc) => {
+  if (doc.exists) {
+    currentList = doc.data().list;
+    updateRemaining();
+  }
+});
+
+// ---------------------------------------------------------------------
+// 4. DRAW BUTTON
+// ---------------------------------------------------------------------
+document.getElementById("drawBtn").onclick = async function () {
+  if (currentList.length === 0) return;
+
+  const index = Math.floor(Math.random() * currentList.length);
+  const pick = currentList[index];
+
+  showResult(pick);
+
+  const newList = [...currentList];
+  newList.splice(index, 1);
+
+  await docRef.update({ list: newList });
+};
+
+// ---------------------------------------------------------------------
+// 5. SAVE SCREENSHOT BUTTON
+// ---------------------------------------------------------------------
+document.getElementById("saveBtn").onclick = async function () {
+  const box = document.getElementById("resultBox");
+
+  html2canvas(box).then(canvas => {
+    const link = document.createElement("a");
+    link.download = "my_draw.png";
+    link.href = canvas.toDataURL();
+    link.click();
+  });
+};
+</script>
+
+</body>
+</html>
