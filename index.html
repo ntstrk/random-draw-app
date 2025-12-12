@@ -157,6 +157,11 @@ function markAsDrawn() {
   localStorage.setItem("hasDrawn", "true");
 }
 
+// Function to clear the "has drawn" status (for reset)
+function clearDrawStatus() {
+  localStorage.removeItem("hasDrawn");
+}  
+
 // Draw button logic
 document.getElementById("drawBtn").onclick = async function() {
   if (hasDrawn()) {
@@ -219,6 +224,7 @@ document.getElementById("resetBtn").onclick = async function() {
     currentList = fullList;
     updateRemaining();
     document.getElementById("resultBox").style.visibility = "hidden";
+    clearDrawStatus(); // Clear the "has drawn" status for all students
   } catch (error) {
     console.error("Error resetting draw:", error);
     alert("Failed to reset draw. Check the console for details.");
