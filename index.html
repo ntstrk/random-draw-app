@@ -62,6 +62,7 @@
 
 <button id="drawBtn">Draw</button>
 <button id="saveBtn" style="display:none;">Save Screenshot</button>
+<button id="resetBtn">Reset Draw</button>
 
 <div id="resultBox"></div>
 <div id="remaining"></div>
@@ -75,7 +76,7 @@
 
 <script>
 // ---------------------------------------------------------------------
-// 1. REPLACE WITH YOUR FIREBASE CONFIG
+// FIREBASE CONFIG
 // ---------------------------------------------------------------------
 const firebaseConfig = {
   apiKey: "AIzaSyACXi5d8eOeC1fxy9ZUWFyxXmQVO4xDa-Q",
@@ -173,6 +174,37 @@ document.getElementById("saveBtn").onclick = async function () {
     link.click();
   });
 };
+
+// Password for resetting the draw
+function checkPassword() {
+  const correctPassword = "spms2025isawesome"; // Replace with your password
+  const userInput = prompt("Enter the admin password to reset the draw:");
+  return userInput === correctPassword;
+}
+
+// Reset button logic
+document.getElementById("resetBtn").onclick = async function() {
+  if (!checkPassword()) {
+    alert("Incorrect password. Reset canceled.");
+    return;
+  }
+
+  const confirmReset = confirm("Are you sure you want to reset the draw? This cannot be undone.");
+  if (!confirmReset) return;
+
+  try {
+    await docRef.update({ list: fullList });
+    alert("Draw reset successfully!");
+    currentList = fullList;
+    updateRemaining();
+    document.getElementById("resultBox").style.visibility = "hidden";
+  } catch (error) {
+    console.error("Error resetting draw:", error);
+    alert("Failed to reset draw. Check the console for details.");
+  }
+};
+
+  
 </script>
 
 </body>
