@@ -147,14 +147,35 @@ docRef.onSnapshot((doc) => {
 // ---------------------------------------------------------------------
 // 4. DRAW BUTTON
 // ---------------------------------------------------------------------
-document.getElementById("drawBtn").onclick = async function () {
-  if (currentList.length === 0) return;
+// Function to check if the current user has already drawn
+function hasDrawn() {
+  return localStorage.getItem("hasDrawn") === "true";
+}
+
+// Function to mark the current user as having drawn
+function markAsDrawn() {
+  localStorage.setItem("hasDrawn", "true");
+}
+
+// Draw button logic
+document.getElementById("drawBtn").onclick = async function() {
+  if (hasDrawn()) {
+    alert("You have already drawn once. Only one draw per student is allowed.");
+    return;
+  }
+
+  if (currentList.length === 0) {
+    alert("No more combos available!");
+    return;
+  }
 
   const index = Math.floor(Math.random() * currentList.length);
   const pick = currentList[index];
 
   showResult(pick);
-
+  markAsDrawn(); // Mark the user as having drawn
+  document.getElementById("drawBtn").disabled = true;
+  
   const newList = [...currentList];
   newList.splice(index, 1);
 
